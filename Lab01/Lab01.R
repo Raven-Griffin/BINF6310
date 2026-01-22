@@ -5,10 +5,9 @@
 #Question 2
 
 #make die
-rollLoadedDie <- function(n) {
-  outcomes <- 1:6
+rollLoadedDie <- function(x) {
   probs <- c(rep(0.1, 5), 0.5)
-  sample(outcomes, size = n, replace = TRUE, prob = probs)
+  sample(1:6, size = x, replace = TRUE, prob = probs)
 }
 
 #roll die
