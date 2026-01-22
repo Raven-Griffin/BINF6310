@@ -1,8 +1,9 @@
-#Question 1
+#Question 1 - What is the mean and variance for the loaded dice?
+
 # The mean is 4.5
 # The Variance is 3.25
 
-#Question 2
+#Question 2 - Make a function in R that “rolls” this dice; return a vector containing the rolls.
 
 #make die
 rollLoadedDie <- function(x) {
@@ -15,7 +16,7 @@ myRolls <- rollLoadedDie(10000)
 myRolls
 
 
-#Question 3
+#Question 3 - Make a histogram of some large number of rolls.  Do the rolls of the loaded die approximate a uniform distribution?
 
 #roll die
 largeRolls <- rollLoadedDie(100000)
@@ -28,7 +29,10 @@ var(largeRolls)
 
 #This is not a uniform distribution
 
-#Question 4
+#Question 4 -Modify the code on Slide #57 of lecture #2 so that the means vs. trial size plots are from the loaded die.  
+#Generate these plots a few times.  
+#How many rolls appear to be necessary to get convergence on the expected values for the mean and variance?
+
 rm(list=ls())
 trialSizes <- c(10, 15, 20,25, 30, 40,50,100,200,300,400,500,1000,2000, 3000, 4000, 5000, 10000, 20000, 30000, 100000)
 means<- vector(mode="double", length =length(trialSizes))
@@ -54,3 +58,5 @@ lines(log10(trialSizes), rep(4.5, length(trialSizes)))
 plot(log10(trialSizes), variances)
 #changed to correct variance
 lines(log10(trialSizes), rep(3.25, length(trialSizes)))
+
+#Log10 of trialSize 1000 is necessary to get convergence on the expected values for the mean and variance
