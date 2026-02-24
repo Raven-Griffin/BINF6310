@@ -1,141 +1,81 @@
+#Raven Griffin
+
+
 rm(list=ls())
-set.seed(1)
+
+numBreaks=1000;
+posteriorDist <- vector(length=numBreaks)
+xVals <- seq(0,1,1/numBreaks);
+
+i <- 1;
+sum <- 0;
+for( x in xVals )
+{
+  # our prior dbeta 40,40
+  # our new data with 14 heads and 10 tails
+  posteriorDist[i] <- dbeta( x, 40,40 ) * dbinom( 14, 24, x)
+  sum = sum + posteriorDist[i];
+  i <- i + 1;	
+}
+
+plot( posteriorDist / sum ) 
+lines( dbeta(xVals, 40+14, 40+10)/ sum(dbeta(xVals, 40+14, 40+10)), col="red")  rm(list=ls())
+
+numBreaks=1000;
+posteriorDist <- vector(length=numBreaks)
+xVals <- seq(0,1,1/numBreaks);
+
+i <- 1;
+sum <- 0;
+for( x in xVals )
+{
+  # our prior with with dexp
+  # our new data with 14 heads and 10 tails
+  prior <- dexp(x, rate =5)/ 0.0032621
+  like <- dbinom(14,24,x)
+  posteriorDist[i] <- prior * like
+  sum = sum + posteriorDist[i];
+  i <- i + 1;	
+}
+
+plot(xVals, posteriorDist / sum, type="l") 
 
 
-# (1A) Plot the prior
+rm(list=ls())
+piOld <- 0.05
 
-mySeqs <- seq(0, 1, by=0.001)
-priorVals <- dexp(mySeqs, rate=5) / 0.9932621
-
-plot(mySeqs, priorVals, type="l", lwd=2,
-     main="(1A) Prior: truncated Exp(rate=5) on [0,1]",
-     xlab="x = P(head)", ylab="prior density")
-
-
-# 1B
-piOld <- 0.5
-
-numIterations <- 60000
-posteriorDist <- vector(length=numIterations)
+numIterations <- 500000
+posteiorDist <- vector()
 
 for( i in 1:numIterations )
 {
-  # exp prior * likelihood
-  pOld <- (dexp(piOld, 5)/0.9932621) * dbinom(14, 24, piOld)
+  # our prior with exp prior
+  # our new data with 14 heads and 10 tails
+  pOld <- (dexp(piOld, 5)/0.9932621) * dbinom( 14, 24, piOld )
   
-  piNew <- piOld + rnorm(1, 0, sd=0.03)
+  piNew <- piOld + rnorm(1, 0, sd =0.01);
   
-  if( piNew > 1 ) piNew = 1
-  if( piNew < 0 ) piNew = 0
+  if( piNew > 1) 
+    piNew = 1;
+  
+  if( piNew < 0 ) 
+    piNew =0;
   
   pNew <- (dexp(piNew, 5)/0.9932621) * dbinom(14, 24, piNew)
   
   ratio <- pNew / pOld
   
-  if( ratio > 1 || ratio >= runif(1) )
-    piOld = piNew
+  if( ratio > 1 || ratio >= runif(1) ) 
+    piOld = piNew;
   
-  posteriorDist[i] = piOld
+  posteiorDist[i] = piOld;	
+  
+  if( i %% 100 == 0 )
+  {	
+    myHist <- hist(posteiorDist,breaks=200,plot=FALSE)
+    plot( myHist$mids, myHist$counts/i, main = paste("iteration", i)) 
+    dbetasum = sum(dbeta(myHist$mids, 10+14, 10+10))
+    lines( myHist$mids, dbeta(myHist$mids, 10+14, 10+10)/dbetasum,col="red") 	
+    Sys.sleep(.1)
+  }
 }
-
-myHist <- hist(posteriorDist, breaks=200, plot=FALSE)
-
-# Metropolis curve (scaled like lecture)
-plot(myHist$mids, myHist$counts/numIterations,
-     type="l", lwd=2, col="blue",
-     xlab="x = P(head)", ylab="posterior (scaled)",
-     main="(1B) 14H,10T: Metropolis+Exp vs Grid+Exp vs Beta(40,40)")
-
-
-# Grid approach 
-
-numBreaks <- 1000
-posteriorGrid <- vector(length=numBreaks+1)
-xVals <- seq(0, 1, 1/numBreaks)
-
-j <- 1
-sumVal <- 0
-
-for( x in xVals )
-{
-  posteriorGrid[j] <- (dexp(x,5)/0.9932621) * dbinom(14, 24, x)
-  sumVal <- sumVal + posteriorGrid[j]
-  j <- j + 1
-}
-
-# Grid curve overlay (normalized by sumVal like lecture)
-lines(xVals, posteriorGrid/sumVal, lwd=2, col="black")
-
-
-# Exact Beta(40,40) posterior
-
-betaExact <- dbeta(xVals, 40+14, 40+10)
-betaExact <- betaExact / sum(betaExact)
-
-lines(xVals, betaExact, lwd=2, col="red")
-
-
-# (1C) 583 heads, 417 tails
-
-rm(list=ls())
-set.seed(1)
-
-
-# Metropolis (Exp prior)
-
-piOld <- 0.5
-
-numIterations <- 120000
-someDistribution <- vector(length=numIterations)
-
-for( i in 1:numIterations )
-{
-  pOld <- (dexp(piOld,5)/0.9932621) * dbinom(583, 1000, piOld)
-  
-  piNew <- piOld + rnorm(1, 0, sd=0.004)
-  
-  if( piNew > 1 ) piNew = 1
-  if( piNew < 0 ) piNew = 0
-  
-  pNew <- (dexp(piNew,5)/0.9932621) * dbinom(583, 1000, piNew)
-  
-  ratio <- pNew / pOld
-  
-  if( ratio > 1 || ratio >= runif(1) )
-    piOld = piNew
-  
-  someDistribution[i] = piOld
-}
-
-myHist <- hist(someDistribution, breaks=250, plot=FALSE)
-
-# Optional zoom window (recommended for 1C so you can see detail)
-# data fraction is 583/1000 = 0.583
-plot(myHist$mids,
-     myHist$counts/length(someDistribution),
-     type="l", lwd=2, col="blue",
-     main="(1C) 583H,417T: Metropolis+Exp vs Grid+Exp vs Beta(40,40)",
-     xlab="x = P(head)", ylab="scaled density",
-     xlim=c(0.54, 0.62))   # <- remove if you want full 0..1
-
-############################
-# Grid curve (Exp prior) on SAME x-axis
-
-gridVals <- (dexp(myHist$mids,5)/0.9932621) * dbinom(583, 1000, myHist$mids)
-aSum <- sum(gridVals)
-lines(myHist$mids, gridVals/aSum, col="black", lwd=2)
-
-
-# Exact posterior from Beta(40,40) prior on SAME x-axis
-
-betaVals <- dbeta(myHist$mids, 40+583, 40+417)
-bSum <- sum(betaVals)
-lines(myHist$mids, betaVals/bSum, col="red", lwd=2)
-
-legend("topright",
-       inset=c(-0.35,0),   # moves legend outside right
-       legend=c("Metropolis + Exp prior",
-                "Grid + Exp prior",
-                "Exact posterior from Beta(40,40) prior"),
-       col=c("blue","black","red"),
-       lwd=2, bty="n")

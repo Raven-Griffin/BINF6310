@@ -1,59 +1,83 @@
-# grid approach to beta prior using a naive (brute force) numerical integration algorithm
+
+
+
+#1A
+
+mySeqs <- seq(0, 1, by=0.001) 
+priorVals <- dexp(mySeqs, rate=5) / 0.9932621 
+plot(mySeqs, priorVals, type="l", lwd=2, 
+     main="(1A) Prior: truncated Exp(rate=5) on [0,1]", 
+     xlab="x = P(head)", ylab="prior density")
+
+#1B
 rm(list=ls())
 
-numBreaks=1000;
-posteriorDist <- vector(length=numBreaks)
-xVals <- seq(0,1,1/numBreaks);
-
-i <- 1;
-sum <- 0;
-for( x in xVals )
-{
-  # our prior with 9 heads and 9 tails
-  # our new data with 14 heads and 10 tails
-  posteriorDist[i] <- (dexp(piOld, 5)/0.9932621) * dbinom( 14, 24, x)
-  sum = sum + posteriorDist[i];
-  i <- i + 1;	
-}
-
-plot( posteriorDist / sum ) 
-lines( dbeta(xVals, 10+14, 10+10)/ sum(dbeta(xVals, 10+14, 10+10)), col="red")  
-
-rm(list=ls())
+#Declare variables
+numIterations <- 500000
+sdProp <- 0.01
 piOld <- 0.05
 
-numIterations <- 500000
-posteiorDist <- vector()
+breaksHist <- 200
+rateExp <- 5
+expNormConst <- 0.9932621   
 
-for( i in 1:numIterations )
+#Prior
+target <- function(x){
+  (dexp(x, rateExp) / expNormConst) * dbinom(14, 24, x)
+}
+
+#METROPOLIS
+posteriorSamples <- numeric(numIterations)
+
+for(i in 1:numIterations)
 {
-  # our prior with 9 heads and 9 tails
-  # our new data with 14 heads and 10 tails
-  pOld <- (dexp(piOld, 5)/0.9932621) * dbinom( 14, 24, piOld )
+  pOld <- target(piOld)
   
-  piNew <- piOld + rnorm(1, 0, sd =0.01);
+  piNew <- piOld + rnorm(1, 0, sd = sdProp)
+  if(piNew > 1) piNew <- 1
+  if(piNew < 0) piNew <- 0
   
-  if( piNew > 1) 
-    piNew = 1;
-  
-  if( piNew < 0 ) 
-    piNew =0;
-  
-  pNew <- (dexp(piNew, 5)/0.9932621) * dbinom(14, 24, piNew)
-  
+  pNew <- target(piNew)
   ratio <- pNew / pOld
   
-  if( ratio > 1 || ratio >= runif(1) ) 
-    piOld = piNew;
+  if(ratio > 1 || ratio >= runif(1))
+    piOld <- piNew
   
-  posteiorDist[i] = piOld;	
-  
-  if( i %% 100 == 0 )
-  {	
-    myHist <- hist(posteiorDist,breaks=200,plot=FALSE)
-    plot( myHist$mids, myHist$counts/i, main = paste("iteration", i)) 
-    dbetasum = sum(dbeta(myHist$mids, 10+14, 10+10))
-    lines( myHist$mids, dbeta(myHist$mids, 10+14, 10+10)/dbetasum,col="red") 	
-    Sys.sleep(.1)
-  }
+  posteriorSamples[i] <- piOld
 }
+
+
+myHist <- hist(posteriorSamples, breaks=breaksHist, plot=FALSE)
+
+xGrid <- myHist$mids
+
+# 1) Histogram scaled to sum to 1 (matches lecture)
+histY <- myHist$counts / length(posteriorSamples)
+
+# 2) Numerical posterior on same xGrid, scaled to sum to 1
+numPostY <- target(xGrid)
+numPostY <- numPostY / sum(numPostY)
+
+# 3) Beta posterior on same xGrid, scaled to sum to 1
+# Exact Beta
+betaPostY <- dbeta(xGrid, 40+14, 40+10)
+betaPostY <- betaPostY / sum(betaPostY)
+
+
+yMax <- max(c(histY, numPostY, betaPostY))
+
+plot(xGrid, histY, type="l", lwd=2,
+     main="Posterior: Metropolis Histogram vs Numerical vs Beta",
+     xlab="p", ylab="Scaled probability / mass",
+     ylim=c(0, yMax))
+
+lines(xGrid, numPostY, col="blue", lwd=2)
+lines(xGrid, betaPostY, col="red", lwd=2)
+
+legend("topright",
+       legend=c("Metropolis (hist counts/n)", "Grid exp prior * like)", "Beta posterior"),
+       col=c("black","blue","red"),
+       lwd=2)
+
+#1C
+
