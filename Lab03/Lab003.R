@@ -81,3 +81,71 @@ legend("topright",
 
 #1C
 
+
+rm(list=ls())
+
+numIterations <- 500000
+sdProp        <- 0.005      
+piOld         <- 0.55       
+breaksHist    <- 300
+rateExp       <- 5
+expNormConst  <- 0.9932621
+
+heads <- 583
+tails <- 417
+total <- heads + tails
+
+
+target_1c <- function(x) {
+  (dexp(x, rateExp) / expNormConst) * dbinom(heads, total, x)
+}
+
+# --- Metropolis ---
+posteriorSamples_1c <- numeric(numIterations)
+
+for (i in 1:numIterations) {
+  pOld  <- target_1c(piOld)
+  piNew <- piOld + rnorm(1, 0, sd = sdProp)
+  if (piNew > 1) piNew <- 1
+  if (piNew < 0) piNew <- 0
+  pNew  <- target_1c(piNew)
+  ratio <- pNew / pOld
+  if (ratio > 1 || ratio >= runif(1)) piOld <- piNew
+  posteriorSamples_1c[i] <- piOld
+}
+
+myHist_1c <- hist(posteriorSamples_1c, breaks = breaksHist, plot = FALSE)
+xGrid_1c  <- myHist_1c$mids
+
+# 1) Metropolis histogram scaled to sum to 1
+histY_1c <- myHist_1c$counts / length(posteriorSamples_1c)
+
+# 2) Grid approximation (exp prior * likelihood), scaled to sum to 1
+numPostY_1c <- target_1c(xGrid_1c)
+numPostY_1c <- numPostY_1c / sum(numPostY_1c)
+
+# 3) Exact analytical: Beta(40 + 583, 40 + 417) = Beta(623, 457)
+betaPostY_1c <- dbeta(xGrid_1c, 40 + heads, 40 + tails)
+betaPostY_1c <- betaPostY_1c / sum(betaPostY_1c)
+
+yMax_1c <- max(c(histY_1c, numPostY_1c, betaPostY_1c))
+
+# zoom x-axis in to where the action is
+xLo <- max(0,   min(posteriorSamples_1c) - 0.02)
+xHi <- min(1,   max(posteriorSamples_1c) + 0.02)
+
+plot(xGrid_1c, histY_1c, type = "l", lwd = 2,
+     main = "(1C) Posterior: 583 heads / 417 tails\nMetropolis vs Grid (exp prior) vs Beta(40,40) prior",
+     xlab = "p = P(head)", ylab = "Scaled probability mass",
+     xlim = c(xLo, xHi),
+     ylim = c(0, yMax_1c * 1.1))
+
+lines(xGrid_1c, numPostY_1c,  col = "blue", lwd = 2)
+lines(xGrid_1c, betaPostY_1c, col = "red",  lwd = 2)
+
+legend("topright",
+       legend = c("Metropolis (exp prior)", "Grid (exp prior)", "Beta(40,40) prior"),
+       col    = c("black", "blue", "red"),
+       lwd    = 2)
+
+
