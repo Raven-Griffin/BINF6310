@@ -50,6 +50,33 @@ Compared two computational approaches to Bayesian posterior estimation using coi
 
 ---
 
+### Lab 04 – Statistical Models with Inappropriate Assumptions (RNA-seq)
+Explored the consequences of applying Poisson and Fisher's exact test to overdispersed 
+RNA-seq count data using E. coli biological replicates.
+- Visualized gene expression patterns across biological replicates on a log10-log10 scale
+- Demonstrated that variance exceeds the mean in RNA-seq count data (overdispersion), 
+  violating Poisson assumptions
+- Generated p-values for all genes using Fisher's exact test and Poisson test
+- Compared p-value distributions before and after filtering low-abundance genes
+- Plotted Fisher vs. Poisson p-values to assess agreement between the two approaches
+- Discussed why both models are inappropriate for overdispersed count data and the 
+  limitations of n=1 experimental designs
+
+---
+
+### Lab 05 – Linear Regression and False Discovery Rate in Genomics
+Applied linear regression to two biological datasets to assess association and evaluate 
+model assumptions.
+- Reproduced Fig. 1 from Tomasetti & Vogelstein (Science, 2015) relating cumulative stem 
+  cell divisions to lifetime cancer risk on a log10-log10 scale
+- Fit a linear model and extracted slope p-value (5.12e-08) and R-squared (0.646)
+- Evaluated constant variance and normality of residuals to assess model assumptions
+- Ran per-OTU linear regression between gut microbiome composition and BMI across 69 
+  subjects in a colorectal adenoma case-control cohort
+- Applied Benjamini-Hochberg FDR correction and found 0 significant OTUs at 10% FDR, 
+  suggesting no detectable microbiome-BMI association in this cohort
+
+
 ## Technologies Used
 
 | Tool | Purpose |
