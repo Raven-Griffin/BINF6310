@@ -1,7 +1,5 @@
-setwd("C:\\classes\\Lab4")
-myT <- read.table("nc101_scaff_dataCounts.txt",
-                  header=TRUE, row.names=1)
 
+myT <- read.table("nc101_scaff_dataCounts.txt", header=TRUE, row.names=1)
 plot(log10(myT$D2_01 + 1),
      log10(myT$D2_02 + 1),
      xlab="D2_01 (log10 counts)",
