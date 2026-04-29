@@ -75,6 +75,19 @@ model assumptions.
   subjects in a colorectal adenoma case-control cohort
 - Applied Benjamini-Hochberg FDR correction and found 0 significant OTUs at 10% FDR, 
   suggesting no detectable microbiome-BMI association in this cohort
+---
+### Lab 06 – ANOVA and Model Comparison in Longitudinal RNA-seq Data
+Applied one-way ANOVA and linear regression to a longitudinal E. coli RNA-seq dataset from a mouse colonization study, then compared the two models using an F-test.
+
+- Normalized raw gene counts to relative abundances and filtered low-abundance genes (median count ≤ 5), retaining 3,983 genes
+- Ran a one-way ANOVA per gene across three time-point categories (Day 2, Week 12, Week 20); identified 612 significant genes at BH FDR < 0.05
+- Ran a linear regression per gene using continuous time in days (2, 86, 128); identified 448 significant genes at BH FDR < 0.05
+- Compared the three-parameter category model to the two-parameter linear model via a per-gene F-test; found 51 genes where the category model fit significantly better at BH FDR < 0.05
+- Visualized p-value distributions for all three tests and plotted the top gene from each model, including a regression line for the linear model's top hit
+- Concluded that the linear regression model is generally more appropriate given its parsimony and biological interpretability, while noting the category model may better capture non-linear expression patterns in a small subset of genes
+
+---
+
 
 
 ## Technologies Used
